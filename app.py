@@ -77,3 +77,37 @@ def generate_volatility_surface(strikes, maturities):
             smile = base_vol + skew + 0.02 * (1 / T if T > 0 else 1)
             surface[i, j] = max(0.05, smile)
     return surface
+
+    
+import numpy as np
+import plotly.graph_objects as go
+import streamlit as st
+
+st.subheader("🌐 Surface de Volatilité Implicite (3D)")
+
+# 1. Définition des axes (Strikes et Maturités)
+strikes = np.linspace(80, 120, 20)
+maturities = np.linspace(0.1, 2.0, 20)
+K_grid, T_grid = np.meshgrid(strikes, maturities)
+
+# 2. Simulation d'une surface de volatilité (Smile / Skew)
+# Vol de base + effet de smile par rapport au strike 100
+vol_surface = 0.20 + 0.0005 * (100 - K_grid)**2 + 0.05 / T_grid
+
+# 3. Création du graphique 3D avec Plotly
+fig = go.Figure(data=[go.Surface(z=vol_surface, x=K_grid, y=T_grid, colorscale='Viridis')])
+
+fig.update_layout(
+    title="Surface de Volatilité (Smile & Skew)",
+    scene=dict(
+        xaxis_title="Strike (K)",
+        yaxis_title="Maturité (T)",
+        zaxis_title="Volatilité Implicite",
+    ),
+    width=700,
+    height=600,
+    margin=dict(l=65, r=50, b=65, t=90)
+)
+
+# 4. Affichage dans l'application Streamlit
+st.plotly_chart(fig, use_container_width=True)

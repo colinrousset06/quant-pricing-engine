@@ -17,5 +17,5 @@ Ce projet implémente un moteur de tarification d'options financières et d'anal
 
 1. Cloner le dépôt :
    ```bash
-   git clone [https://github.com/ton-username/quant-pricing-engine.git](https://github.com/ton-username/quant-pricing-engine.git)
+   git clone [https://github.com/colinrousset06/quant-pricing-engine.git](https://github.com/colinrousset06/quant-pricing-engine.git)
    cd quant-pricing-engine
