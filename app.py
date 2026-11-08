@@ -81,6 +81,10 @@ def generate_volatility_surface(strikes, maturities):
 
 
 
+import numpy as np
+import plotly.graph_objects as go
+import streamlit as st
+
 st.sidebar.header("Paramètres de l'option")
 
 # Récupération des valeurs des sliders dans des variables
@@ -90,10 +94,11 @@ T_input = st.sidebar.slider("Maturité de base (T)", 0.1, 3.0, 1.0)
 sigma_input = st.sidebar.slider("Volatilité actuelle (σ)", 0.05, 1.0, 0.20)
 r = st.sidebar.slider("Taux sans risque (r)", 0.0, 0.2, 0.05)
 
-import numpy as np
-import plotly.graph_objects as go
-
 st.subheader("🌐 Surface de Volatilité Interactive")
+
+# --- TEST DE DIAGNOSTIC ---
+# Affiche en direct la valeur de sigma pour vérifier que le slider réagit instantanément
+st.info(f"🔍 **Diagnostic en direct :** La volatilité actuelle ($\sigma$) transmise au calcul est de **{sigma_input:.4f}**")
 
 # Définition de la grille 3D (Strikes et Maturités pour le graphique)
 strikes = np.linspace(50, 150, 20)
@@ -101,8 +106,7 @@ maturities = np.linspace(0.1, 3.0, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
 # Injection de vos variables de sliders dans le calcul de la surface
-# Par exemple, le niveau général de la vol est piloté par 'sigma_input' 
-# et le smile s'articule autour du strike de référence 'K_input'
+# 'sigma_input' pilote la hauteur globale de la surface (le niveau de vol)
 vol_surface = sigma_input + 0.0005 * (K_grid - K_input)**2 + 0.02 * (T_grid / T_input)
 
 # Création du graphique Plotly
@@ -121,6 +125,7 @@ fig.update_layout(
         xaxis_title="Strike (K)",
         yaxis_title="Maturité (T)",
         zaxis_title="Volatilité Implicite",
+        zaxis=dict(range=[0.0, 2.0])  # Force l'échelle de l'axe Z pour observer clairement la variation
     ),
     width=700,
     height=600
