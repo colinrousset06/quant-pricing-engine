@@ -62,3 +62,18 @@ with col_right:
     st.write(f"• **Arbre Binomial (CRR 150 pas) :** `{bin_price:.4f} $`")
     
     st.info("💡 L'arbre binomial permet également de priser des options de style américain en activant le test d'exercice anticipé.")
+
+
+import numpy as np
+
+def generate_volatility_surface(strikes, maturities):
+    """Génère une matrice de volatilité implicite (Smile / Skew)."""
+    surface = np.zeros((len(maturities), len(strikes)))
+    for i, T in enumerate(maturities):
+        for j, K in enumerate(strikes):
+            # Formule empirique simple simulant un smile de volatilité en fonction du strike
+            base_vol = 0.20
+            skew = 0.005 * (100 - K) ** 2 / 100
+            smile = base_vol + skew + 0.02 * (1 / T if T > 0 else 1)
+            surface[i, j] = max(0.05, smile)
+    return surface
