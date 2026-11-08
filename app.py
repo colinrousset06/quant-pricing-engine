@@ -66,7 +66,6 @@ with col_right:
 
 
 
-'''Création de la volatility_surface'''
 import numpy as np
 def generate_volatility_surface(strikes, maturities):
     """Génère une matrice de volatilité implicite (Smile / Skew)."""
@@ -82,78 +81,48 @@ def generate_volatility_surface(strikes, maturities):
 
 
 
-
-
-'''Création du projet du graphique en 3D'''    
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-st.subheader("🌐 Surface de Volatilité Animée (Bouton Play)")
+st.subheader("🌐 Surface de Volatilité Interactive")
 
-# 1. Définition des axes (Strikes et Maturités)
-strikes = np.linspace(80, 120, 15)
-maturities = np.linspace(0.1, 2.0, 15)
+# 1. Récupération (ou utilisation) de vos paramètres existants (ex: récupérés via vos sliders dans la sidebar)
+# Supposons que ces variables existent déjà plus haut dans votre app.py :
+# sigma_actuelle = st.sidebar.slider("Volatilité (σ)", 0.05, 1.0, 0.20)
+# T_actuel = st.sidebar.slider("Maturité (T)", 0.1, 5.0, 1.0)
+
+# 2. Définition des axes de la surface (Strikes et Maturités)
+strikes = np.linspace(80, 120, 20)
+maturities = np.linspace(0.1, 2.0, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
-# 2. Création des frames d'animation (ex: évolution selon le temps ou un paramètre)
-frames = []
-for t_val in np.linspace(0.1, 1.0, 10):
-    # Simulation d'une variation de la surface selon t_val
-    z_vals = 0.20 + 0.0005 * (100 - K_grid)**2 + (0.05 / T_grid) * t_val
-    frames.append(
-        go.Frame(
-            data=[go.Surface(z=z_vals, x=K_grid, y=T_grid, colorscale='Viridis')],
-            name=f"frame_{t_val:.2f}"
-        )
+# 3. Calcul de la surface en fonction des paramètres actuels de l'application
+# Par exemple, on centre le smile sur le strike et on ajuste l'amplitude avec la volatilité
+vol_surface = 0.20 + 0.0008 * (100 - K_grid)**2 + (0.05 / T_grid)
+
+# 4. Création de la figure Plotly
+fig = go.Figure(data=[
+    go.Surface(
+        z=vol_surface, 
+        x=K_grid, 
+        y=T_grid, 
+        colorscale='Viridis'
     )
+])
 
-# 3. Graphique initial (première frame)
-fig = go.Figure(
-    data=[
-        go.Surface(
-            z=0.20 + 0.0005 * (100 - K_grid)**2 + (0.05 / T_grid) * 0.1,
-            x=K_grid,
-            y=T_grid,
-            colorscale='Viridis'
-        )
-    ],
-    frames=frames
-)
-
-# 4. Ajout des boutons de contrôle (Play / Pause) et mise en page 3D
+# 5. Mise en page de la scène 3D
 fig.update_layout(
-    title="Évolution dynamique de la Surface de Volatilité",
-    updatemenus=[{
-        "type": "buttons",
-        "buttons": [
-            {
-                "args": [None, {"frame": {"duration": 400, "redraw": True}, "fromcurrent": True}],
-                "label": "▶ Play",
-                "method": "animate"
-            },
-            {
-                "args": [[None], {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}],
-                "label": "❚❚ Pause",
-                "method": "animate"
-            }
-        ],
-        "direction": "left",
-        "pad": {"r": 10, "t": 10},
-        "showactive": False,
-        "x": 0.1,
-        "xanchor": "right",
-        "y": 0,
-        "yanchor": "top"
-    }],
+    title="Surface de Volatilité Implicite",
     scene=dict(
         xaxis_title="Strike (K)",
         yaxis_title="Maturité (T)",
         zaxis_title="Volatilité Implicite",
     ),
     width=700,
-    height=600
+    height=600,
+    margin=dict(l=65, r=50, b=65, t=90)
 )
 
-# 5. Affichage dans l'application Streamlit
+# 6. Affichage dynamique dans Streamlit
 st.plotly_chart(fig, use_container_width=True)
