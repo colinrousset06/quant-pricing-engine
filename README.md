@@ -13,9 +13,12 @@ Ce projet implémente un moteur de tarification d'options financières et d'anal
 - **Calcul Numérique :** NumPy, SciPy
 - **Interface & Visualisation :** Streamlit, Plotly
 
+<<<<<<< HEAD
 ## 📌 Installation & Utilisation locale
 
 1. Cloner le dépôt :
    ```bash
    git clone [https://github.com/colinrousset06/quant-pricing-engine.git](https://github.com/colinrousset06/quant-pricing-engine.git)
    cd quant-pricing-engine
+=======
+>>>>>>> 95ecfb46166f332bb6f2cf3a20ff70160d9bbbe7
