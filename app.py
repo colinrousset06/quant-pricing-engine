@@ -81,27 +81,31 @@ def generate_volatility_surface(strikes, maturities):
 
 
 
+st.sidebar.header("Paramètres de l'option")
+
+# Récupération des valeurs des sliders dans des variables
+S = st.sidebar.slider("Prix du Sous-Jacent (S)", 50.0, 150.0, 100.0)
+K_input = st.sidebar.slider("Strike de référence (K)", 50.0, 150.0, 100.0)
+T_input = st.sidebar.slider("Maturité de base (T)", 0.1, 3.0, 1.0)
+sigma_input = st.sidebar.slider("Volatilité actuelle (σ)", 0.05, 1.0, 0.20)
+r = st.sidebar.slider("Taux sans risque (r)", 0.0, 0.2, 0.05)
+
 import numpy as np
 import plotly.graph_objects as go
-import streamlit as st
 
 st.subheader("🌐 Surface de Volatilité Interactive")
 
-# 1. Récupération (ou utilisation) de vos paramètres existants (ex: récupérés via vos sliders dans la sidebar)
-# Supposons que ces variables existent déjà plus haut dans votre app.py :
-# sigma_actuelle = st.sidebar.slider("Volatilité (σ)", 0.05, 1.0, 0.20)
-# T_actuel = st.sidebar.slider("Maturité (T)", 0.1, 5.0, 1.0)
-
-# 2. Définition des axes de la surface (Strikes et Maturités)
-strikes = np.linspace(80, 120, 20)
-maturities = np.linspace(0.1, 2.0, 20)
+# Définition de la grille 3D (Strikes et Maturités pour le graphique)
+strikes = np.linspace(50, 150, 20)
+maturities = np.linspace(0.1, 3.0, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
-# 3. Calcul de la surface en fonction des paramètres actuels de l'application
-# Par exemple, on centre le smile sur le strike et on ajuste l'amplitude avec la volatilité
-vol_surface = 0.20 + 0.0008 * (100 - K_grid)**2 + (0.05 / T_grid)
+# Injection de vos variables de sliders dans le calcul de la surface
+# Par exemple, le niveau général de la vol est piloté par 'sigma_input' 
+# et le smile s'articule autour du strike de référence 'K_input'
+vol_surface = sigma_input + 0.0005 * (K_grid - K_input)**2 + 0.02 * (T_grid / T_input)
 
-# 4. Création de la figure Plotly
+# Création du graphique Plotly
 fig = go.Figure(data=[
     go.Surface(
         z=vol_surface, 
@@ -111,18 +115,16 @@ fig = go.Figure(data=[
     )
 ])
 
-# 5. Mise en page de la scène 3D
 fig.update_layout(
-    title="Surface de Volatilité Implicite",
+    title=f"Surface de Volatilité (Calibrée sur σ = {sigma_input})",
     scene=dict(
         xaxis_title="Strike (K)",
         yaxis_title="Maturité (T)",
         zaxis_title="Volatilité Implicite",
     ),
     width=700,
-    height=600,
-    margin=dict(l=65, r=50, b=65, t=90)
+    height=600
 )
 
-# 6. Affichage dynamique dans Streamlit
+# Affichage dans l'application
 st.plotly_chart(fig, use_container_width=True)
