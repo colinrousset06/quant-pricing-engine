@@ -10,7 +10,7 @@ st.set_page_config(page_title="Quant & Pricing Engine", layout="wide")
 st.title("📊 Option Pricing & Risk Engine")
 st.markdown("Moteur d'évaluation d'options et d'analyse de sensibilité (Greeks & Volatilité)")
 
-# --- Barre latérale de configuration ---
+# --- Barre latérale de configuration unique ---
 st.sidebar.header("Paramètres du Marché")
 S = st.sidebar.number_input("Prix du Sous-Jacent (S)", value=100.0, step=1.0)
 K = st.sidebar.number_input("Prix d'Exercice / Strike (K)", value=100.0, step=1.0)
@@ -63,50 +63,22 @@ with col_right:
     
     st.info("💡 L'arbre binomial permet également de priser des options de style américain en activant le test d'exercice anticipé.")
 
+st.markdown("---")
 
-
-
-import numpy as np
-def generate_volatility_surface(strikes, maturities):
-    """Génère une matrice de volatilité implicite (Smile / Skew)."""
-    surface = np.zeros((len(maturities), len(strikes)))
-    for i, T in enumerate(maturities):
-        for j, K in enumerate(strikes):
-            # Formule empirique simple simulant un smile de volatilité en fonction du strike
-            base_vol = 0.20
-            skew = 0.005 * (100 - K) ** 2 / 100
-            smile = base_vol + skew + 0.02 * (1 / T if T > 0 else 1)
-            surface[i, j] = max(0.05, smile)
-    return surface
-
-
-import numpy as np
-import plotly.graph_objects as go
-import streamlit as st
-
-st.sidebar.header("Paramètres de l'option")
-
-# Récupération des valeurs des sliders dans des variables
-S = st.sidebar.slider("Prix du Sous-Jacent (S)", 50.0, 150.0, 100.0)
-K_input = st.sidebar.slider("Strike de référence (K)", 50.0, 150.0, 100.0)
-T_input = st.sidebar.slider("Maturité de base (T)", 0.1, 3.0, 1.0)
-sigma_input = st.sidebar.slider("Volatilité actuelle (σ)", 0.05, 1.0, 0.20)
-r = st.sidebar.slider("Taux sans risque (r)", 0.0, 0.2, 0.05)
-
+# --- Surface de Volatilité 3D (Connectée aux curseurs principaux) ---
 st.subheader("🌐 Surface de Volatilité Interactive")
 
-# --- TEST DE DIAGNOSTIC ---
-st.info(f"🔍 **Diagnostic en direct :** La volatilité actuelle ($\sigma$) transmise au calcul est de **{sigma_input:.4f}**")
+st.info(f"🔍 **Diagnostic en direct :** La volatilité actuelle ($\sigma$) transmise au calcul est de **{sigma: .4f}**")
 
-# Définition de la grille 3D
+# Définition de la grille 3D basée sur les paramètres globaux (K et T)
 strikes = np.linspace(50, 150, 20)
 maturities = np.linspace(0.1, 3.0, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
-# Formule dynamique liée à sigma_input
-vol_surface = sigma_input * (1.0 + 0.002 * np.abs(K_grid - K_input) + 0.05 / T_grid)
+# Formule dynamique liée au sigma global de la sidebar
+vol_surface = sigma * (1.0 + 0.002 * np.abs(K_grid - K) + 0.05 / T_grid)
 
-# Création du graphique Plotly
+# Création du graphique Plotly 3D
 fig = go.Figure(data=[
     go.Surface(
         z=vol_surface, 
@@ -117,16 +89,15 @@ fig = go.Figure(data=[
 ])
 
 fig.update_layout(
-    title=f"Surface de Volatilité (Calibrée sur σ = {sigma_input:.2f})",
+    title=f"Surface de Volatilité (Calibrée sur σ = {sigma:.2f})",
     scene=dict(
         xaxis_title="Strike (K)",
         yaxis_title="Maturité (T)",
         zaxis_title="Volatilité Implicite",
-        zaxis=dict(range=[0.0, 2.5])  # Plage fixe pour observer la montée/descente de la surface
+        zaxis=dict(range=[0.0, 2.5])  # Plage fixe pour observer la surface
     ),
     width=700,
     height=600
 )
 
-# Affichage dans l'application
 st.plotly_chart(fig, use_container_width=True)
