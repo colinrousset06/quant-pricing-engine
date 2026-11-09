@@ -7,14 +7,34 @@ from src.binomial_tree import binomial_tree_price
 
 st.set_page_config(page_title="Quant & Pricing Engine", layout="wide")
 
+# --- PERSONNALISATION CSS : Curseurs en BLEU ---
+st.markdown("""
+<style>
+    /* Change la couleur de la poignée du slider en bleu */
+    div[data-baseweb="slider"] div[role="slider"] {
+        background-color: #0066cc !important;
+        border-color: #0066cc !important;
+    }
+    /* Change la couleur de la barre active du slider */
+    div[data-baseweb="slider"] div > div > div > div {
+        background-color: #0066cc !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("📊 Option Pricing & Risk Engine")
 st.markdown("Moteur d'évaluation d'options et d'analyse de sensibilité (Greeks & Volatilité)")
 
 # --- Barre latérale de configuration unique ---
 st.sidebar.header("Paramètres du Marché")
 S = st.sidebar.number_input("Prix du Sous-Jacent (S)", value=100.0, step=1.0)
-K = st.sidebar.number_input("Prix d'Exercice / Strike (K)", value=100.0, step=1.0)
+
+# Remplacement du number_input par un slider pour le Strike (K) en bleu
+K = st.sidebar.slider("Prix d'Exercice / Strike (K)", min_value=50.0, max_value=150.0, value=100.0, step=1.0)
+
+# Curseur pour la Maturité (T)
 T = st.sidebar.slider("Maturité en années (T)", min_value=0.01, max_value=3.0, value=1.0, step=0.01)
+
 r = st.sidebar.slider("Taux sans risque (r)", min_value=0.0, max_value=0.20, value=0.05, step=0.005)
 sigma = st.sidebar.slider("Volatilité (σ)", min_value=0.01, max_value=1.50, value=0.20, step=0.01)
 option_type = st.sidebar.selectbox("Type d'Option", ["call", "put"])
@@ -65,17 +85,17 @@ with col_right:
 
 st.markdown("---")
 
-# --- Surface de Volatilité 3D (Connectée aux curseurs principaux) ---
+# --- Surface de Volatilité 3D (Connectée aux curseurs K, T et sigma) ---
 st.subheader("🌐 Surface de Volatilité Interactive")
 
-st.info(f"🔍 **Diagnostic en direct :** La volatilité actuelle ($\sigma$) transmise au calcul est de **{sigma: .4f}**")
+st.info(f"🔍 **Diagnostic en direct :** $\sigma$ = **{sigma:.4f}** | $K$ = **{K:.1f}** | $T$ = **{T:.2f}**")
 
-# Définition de la grille 3D basée sur les paramètres globaux (K et T)
+# Définition de la grille 3D basée sur les paramètres globaux
 strikes = np.linspace(50, 150, 20)
 maturities = np.linspace(0.1, 3.0, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
-# Formule dynamique liée au sigma global de la sidebar
+# Formule dynamique liée aux curseurs K, T et sigma
 vol_surface = sigma * (1.0 + 0.002 * np.abs(K_grid - K) + 0.05 / T_grid)
 
 # Création du graphique Plotly 3D
@@ -89,12 +109,12 @@ fig = go.Figure(data=[
 ])
 
 fig.update_layout(
-    title=f"Surface de Volatilité (Calibrée sur σ = {sigma:.2f})",
+    title=f"Surface de Volatilité (Calibrée sur σ = {sigma:.2f}, K = {K}, T = {T})",
     scene=dict(
         xaxis_title="Strike (K)",
         yaxis_title="Maturité (T)",
         zaxis_title="Volatilité Implicite",
-        zaxis=dict(range=[0.0, 2.5])  # Plage fixe pour observer la surface
+        zaxis=dict(range=[0.0, 2.5])
     ),
     width=700,
     height=600
