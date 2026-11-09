@@ -84,19 +84,19 @@ with col_right:
     st.info("💡 L'arbre binomial permet également de priser des options de style américain en activant le test d'exercice anticipé.")
 
 st.markdown("---")
-
-# --- Surface de Volatilité 3D (Connectée aux curseurs K, T et sigma) ---
+# --- Surface de Volatilité 3D (Dynamique et connectée aux curseurs) ---
 st.subheader("🌐 Surface de Volatilité Interactive")
 
 st.info(f"🔍 **Diagnostic en direct :** $\sigma$ = **{sigma:.4f}** | $K$ = **{K:.1f}** | $T$ = **{T:.2f}**")
 
-# Définition de la grille 3D basée sur les paramètres globaux
-strikes = np.linspace(50, 150, 20)
-maturities = np.linspace(0.1, 3.0, 20)
+# Définition de la grille 3D autour des valeurs actuelles pour plus de dynamisme
+strikes = np.linspace(max(10.0, K - 50), K + 50, 20)
+maturities = np.linspace(max(0.01, T - 1.5), T + 1.5, 20)
 K_grid, T_grid = np.meshgrid(strikes, maturities)
 
-# Formule dynamique liée aux curseurs K, T et sigma
-vol_surface = sigma * (1.0 + 0.002 * np.abs(K_grid - K) + 0.05 / T_grid)
+# Formule rendant les curseurs K et T pleinement actifs et visibles sur le graphe
+# Le niveau global s'ajuste avec T et le centre du smile s'ajuste avec K
+vol_surface = sigma * (1.0 + 0.01 * np.abs(K_grid - K) + 0.1 / (T_grid + 0.1))
 
 # Création du graphique Plotly 3D
 fig = go.Figure(data=[
